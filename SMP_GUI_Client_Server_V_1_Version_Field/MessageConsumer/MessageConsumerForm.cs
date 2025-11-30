@@ -1,6 +1,5 @@
 using SMP_Library;
 using System;
-using System.Diagnostics.Tracing;
 using System.Windows.Forms;
 
 namespace SMPClientConsumer
@@ -19,6 +18,7 @@ namespace SMPClientConsumer
             textBoxServerIPAddress.Enabled = false;
             textBoxApplicationPortNumber.Enabled = false;
             buttonGetMessage.Enabled = false;
+
             int priority;
 
             //Get the message priority
@@ -87,6 +87,7 @@ namespace SMPClientConsumer
                 {
                     // Response does not contain a date or a message record. It must be an error.
                     MessageBox.Show(response, "Message Status", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    textBoxMessageContent.Text = string.Empty;
                 }
                 else
                 {
