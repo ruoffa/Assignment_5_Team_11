@@ -89,14 +89,20 @@ namespace SMPServer
                 string message = reader.ReadLine();
                 string emptyLine = reader.ReadLine();
 
-                string record = "Version: " + version + Environment.NewLine;
-                record += "User ID: " +  userId + Environment.NewLine;
-                record += "Password: " + password + Environment.NewLine;
-                record += "Priority: " + priority + Environment.NewLine;
-                record += "Date/Time: " + dateTime + Environment.NewLine;
-                record += "Message: " + message + Environment.NewLine;
+                if (radioAll.Checked ||
+                    (radioButtonPriorityLow.Checked && priority == "1") ||
+                    (radioButtonPriorityMedium.Checked && priority == "2") ||
+                    (radioButtonPriorityHigh.Checked && priority == "3"))
+                {
+                    string record = "Version: " + version + Environment.NewLine;
+                    record += "User ID: " + userId + Environment.NewLine;
+                    record += "Password: " + password + Environment.NewLine;
+                    record += "Priority: " + priority + Environment.NewLine;
+                    record += "Date/Time: " + dateTime + Environment.NewLine;
+                    record += "Message: " + message + Environment.NewLine;
 
-                textBoxMessages.AppendText(record + Environment.NewLine);
+                    textBoxMessages.AppendText(record + Environment.NewLine);
+                }
 
                 version = reader.ReadLine();
             }
