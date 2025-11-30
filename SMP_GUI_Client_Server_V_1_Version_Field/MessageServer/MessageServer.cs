@@ -137,10 +137,10 @@ namespace SMPServer
             }
         }
 
-        private static SmpPacket ProcessSmpGetPacket(string priority)
+        private static SmpPacket ProcessSmpGetPacket(string requestedPriority)
         {
             SmpPacket smpPacket = null;
-
+            
             try
             {
                 if (!File.Exists("Messages.txt"))
@@ -150,18 +150,29 @@ namespace SMPServer
 
                 StreamReader reader = new StreamReader("Messages.txt");
                 
-                string smpVersion = reader.ReadLine();
-                string userId = reader.ReadLine();
-                string password = reader.ReadLine();
-                priority = reader.ReadLine();
-                string dateTime = reader.ReadLine();
-                string message = reader.ReadLine();
+               string smpVersion = reader.ReadLine();
 
+                // Loop through all messages to find the first one with matching priority
+                while (smpVersion != null)
+                {
+                    string userId = reader.ReadLine();
+                    string password = reader.ReadLine();
+                    string priority = reader.ReadLine();
+                    string dateTime = reader.ReadLine();
+                    string message = reader.ReadLine();
+                    string emptyLine = reader.ReadLine();
+
+                    if (priority == requestedPriority)
+                    {
+                        smpPacket = new SmpPacket(smpVersion, userId, password, 
+                            Enumerations.SmpMessageType.GetMessage.ToString(),
+                            priority, dateTime, message);
+                        break;
+                    }
+
+                    smpVersion = reader.ReadLine();
+                }
                 reader.Close();
-
-                smpPacket = new SmpPacket(smpVersion, userId, password, 
-                    Enumerations.SmpMessageType.GetMessage.ToString(),
-                    priority, dateTime, message);
             }
             catch (Exception ex)
             {
