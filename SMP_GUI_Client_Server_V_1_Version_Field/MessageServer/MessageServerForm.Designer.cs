@@ -1,4 +1,4 @@
-﻿namespace SMPServer
+namespace SMPServer
 {
     partial class FormSmpServer
     {
