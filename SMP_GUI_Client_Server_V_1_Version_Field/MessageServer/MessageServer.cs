@@ -1,5 +1,6 @@
 using SMP_Library;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -117,7 +118,7 @@ namespace SMPServer
 
                 StreamWriter writer = new StreamWriter("Messages.txt", true);
 
-                writer.Write(record);
+                writer.WriteLine(record);
                 writer.Flush();
 
                 writer.Close();
@@ -127,40 +128,43 @@ namespace SMPServer
                 ExceptionLogger.LogExeption(ex);
             }
         }
-
         private static SmpPacket ProcessSmpGetPacket(string requestedUserId, string requestedPassword, string requestedPriority)
         {
+            // The number of lines in a single message record.
+            const int recordSize = 7;
+
             SmpPacket smpPacket = null;
 
             try
             {
                 if (!File.Exists("Messages.txt")) return null;
 
-                StreamReader reader = new StreamReader("Messages.txt");
+                var lines = new List<string>(File.ReadAllLines("Messages.txt"));
 
-                string smpVersion = reader.ReadLine();
-
-                // Loop through all messages to find the first one with matching priority
-                while (smpVersion != null)
+                int i = 0;
+                while (i <= lines.Count - recordSize)
                 {
-                    string userId = reader.ReadLine();
-                    string password = reader.ReadLine();
-                    string priority = reader.ReadLine();
-                    string dateTime = reader.ReadLine();
-                    string message = reader.ReadLine();
-                    string emptyLine = reader.ReadLine();
+                    string smpVersion = lines[i++];
+                    // Stop parsing if an incompatible record is found.
+                    if (smpVersion != Enumerations.SmpVersion.Version_2_0.ToString()) break;
+
+                    string userId = lines[i++];
+                    string password = lines[i++];
+                    string priority = lines[i++];
+                    string dateTime = lines[i++];
+                    string message = lines[i++];
+                    string emptyLine = lines[i++];
 
                     if (userId == requestedUserId && password == requestedPassword && priority == requestedPriority)
                     {
-                        smpPacket = new SmpPacket(smpVersion, userId, password,
-                            Enumerations.SmpMessageType.GetMessage.ToString(),
-                            priority, dateTime, message);
+                        smpPacket = new SmpPacket(smpVersion, userId, password, Enumerations.SmpMessageType.GetMessage.ToString(), priority, dateTime, message);
+                        lines.RemoveRange(i - recordSize, recordSize);
                         break;
                     }
-
-                    smpVersion = reader.ReadLine();
                 }
-                reader.Close();
+
+                // Update the messages file with the matching record removed.
+                File.WriteAllLines("Messages.txt", lines);
             }
             catch (Exception ex)
             {
@@ -169,6 +173,7 @@ namespace SMPServer
 
             return smpPacket;
         }
+
 
         private static void SendSmpResponsePacket(string responsePacket, Stream dataStream)
         {
