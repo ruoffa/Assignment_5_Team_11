@@ -12,23 +12,20 @@ namespace SMPServer
 
         public static void Start(object o)
         {
-            FormSmpServer form = o as FormSmpServer;
+            if (!(o is FormSmpServer form)) return;
 
-            if (form != null)
+            IPAddress iPAddress = IPAddress.Parse(form.IpAddress);
+            int port = form.Port;
+
+            TcpListener server = new TcpListener(iPAddress, port);
+
+            server.Start();
+
+            while (true)
             {
-                IPAddress iPAddress = IPAddress.Parse(form.IpAddress);
-                int port = form.Port;
+                TcpClient connection = server.AcceptTcpClient();
 
-                TcpListener server = new TcpListener(iPAddress, port);
-
-                server.Start();
-
-                while (true)
-                {
-                    TcpClient connection = server.AcceptTcpClient();
-
-                    ProcessConnection(connection);
-                }
+                ProcessConnection(connection);
             }
         }
 
@@ -47,13 +44,12 @@ namespace SMPServer
                 string userId = networkStreamReader.ReadLine();
                 string password = networkStreamReader.ReadLine();
                 string messageType = networkStreamReader.ReadLine();
+                string priority = networkStreamReader.ReadLine();
+                string dateTime = networkStreamReader.ReadLine();
+                string message = networkStreamReader.ReadLine();
 
                 if (messageType == Enumerations.SmpMessageType.PutMessage.ToString())
                 {
-                    string priority = networkStreamReader.ReadLine();
-                    string dateTime = networkStreamReader.ReadLine();
-                    string message = networkStreamReader.ReadLine();
-
                     SmpPacket smpPacket = new SmpPacket(version, userId, password, messageType, priority, dateTime, message);
 
                     ProcessSmpPutPacket(smpPacket);
@@ -66,37 +62,33 @@ namespace SMPServer
 
                     PacketEventArgs eventArgs = new PacketEventArgs(smpPacket);
 
-                    if (PacketRecieved != null) PacketRecieved(null, eventArgs);
+                    PacketRecieved?.Invoke(null, eventArgs);
                 }
                 else if (messageType == Enumerations.SmpMessageType.GetMessage.ToString())
                 {
-                    string priority = networkStreamReader.ReadLine();
-                    string dateTime = networkStreamReader.ReadLine();
-                    string message = networkStreamReader.ReadLine();
-
                     SmpPacket smpPacket = ProcessSmpGetPacket(userId, password, priority);
+                    string responsePacket;
 
                     if (smpPacket != null)
                     {
                         string record = smpPacket.DateTime + Environment.NewLine;
                         record += smpPacket.Message + Environment.NewLine;
 
-                        string responsePacket = "Message Information: " + Environment.NewLine + record;
-
-                        SendSmpResponsePacket(responsePacket, networkStream);
+                        responsePacket = "Message Information: " + Environment.NewLine + record;
                     }
                     else
                     {
-                        string responsePacket = "No messages found. Please check your credentials and try again." + Environment.NewLine;
-                        SendSmpResponsePacket(responsePacket, networkStream);
+                        responsePacket = "No messages found. Please check your credentials and try again." + Environment.NewLine;
                     }
+
+                    SendSmpResponsePacket(responsePacket, networkStream);
 
                     networkStreamReader.Close();
 
                     if (smpPacket != null)
                     {
                         PacketEventArgs eventArgs = new PacketEventArgs(smpPacket);
-                        if (PacketRecieved != null) PacketRecieved(null, eventArgs);
+                        PacketRecieved?.Invoke(null, eventArgs);
                     }
                 }
             }
@@ -114,22 +106,21 @@ namespace SMPServer
         {
             try
             {
-                if (smpPacket != null)
-                {
-                    string record = smpPacket.Version + Environment.NewLine;
-                    record += smpPacket.UserId + Environment.NewLine;
-                    record += smpPacket.Password + Environment.NewLine;
-                    record += smpPacket.Priority + Environment.NewLine;
-                    record += smpPacket.DateTime + Environment.NewLine;
-                    record += smpPacket.Message + Environment.NewLine;
+                if (smpPacket == null) return;
 
-                    StreamWriter writer = new StreamWriter("Messages.txt", true);
+                string record = smpPacket.Version + Environment.NewLine;
+                record += smpPacket.UserId + Environment.NewLine;
+                record += smpPacket.Password + Environment.NewLine;
+                record += smpPacket.Priority + Environment.NewLine;
+                record += smpPacket.DateTime + Environment.NewLine;
+                record += smpPacket.Message + Environment.NewLine;
 
-                    writer.WriteLine(record);
-                    writer.Flush();
+                StreamWriter writer = new StreamWriter("Messages.txt", true);
 
-                    writer.Close();
-                }
+                writer.Write(record);
+                writer.Flush();
+
+                writer.Close();
             }
             catch (Exception ex)
             {
@@ -143,14 +134,11 @@ namespace SMPServer
 
             try
             {
-                if (!File.Exists("Messages.txt"))
-                {
-                    return null;
-                }
+                if (!File.Exists("Messages.txt")) return null;
 
                 StreamReader reader = new StreamReader("Messages.txt");
-                
-               string smpVersion = reader.ReadLine();
+
+                string smpVersion = reader.ReadLine();
 
                 // Loop through all messages to find the first one with matching priority
                 while (smpVersion != null)
@@ -164,7 +152,7 @@ namespace SMPServer
 
                     if (userId == requestedUserId && password == requestedPassword && priority == requestedPriority)
                     {
-                        smpPacket = new SmpPacket(smpVersion, userId, password, 
+                        smpPacket = new SmpPacket(smpVersion, userId, password,
                             Enumerations.SmpMessageType.GetMessage.ToString(),
                             priority, dateTime, message);
                         break;
@@ -181,12 +169,12 @@ namespace SMPServer
 
             return smpPacket;
         }
-        
-        private static void SendSmpResponsePacket(String responsePacket, NetworkStream dataStream)
+
+        private static void SendSmpResponsePacket(string responsePacket, Stream dataStream)
         {
             StreamWriter writer = new StreamWriter(dataStream);
 
-            writer.WriteLine(responsePacket);
+            writer.Write(responsePacket);
             writer.Flush();
 
             writer.Close();

@@ -15,6 +15,10 @@ namespace SMPClientProducer
 
         private void buttonSendMessage_Click(object sender, EventArgs e)
         {
+            textBoxServerIPAddress.Enabled = false;
+            textBoxApplicationPortNumber.Enabled = false;
+            buttonSendMessage.Enabled = false;
+
             int priority;
 
             //Get the message priority
@@ -45,11 +49,25 @@ namespace SMPClientProducer
                 DateTime.Now.ToString(),
                 message);
 
-            //Send the packet
-            MessageProducer.SendSmpPacket(textBoxServerIPAddress.Text,
-                int.Parse(textBoxApplicationPortNumber.Text), smpPacket);
+            try
+            {
+                //Send the packet
+                MessageProducer.SendSmpPacket(textBoxServerIPAddress.Text,
+                    int.Parse(textBoxApplicationPortNumber.Text), smpPacket);
 
-            MessageBox.Show("Message sent...", "Message Status", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Message sent...", "Message Status", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.LogExeption(ex);
+                MessageBox.Show(ex.Message, ex.GetType().Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                textBoxServerIPAddress.Enabled = true;
+                textBoxApplicationPortNumber.Enabled = true;
+                buttonSendMessage.Enabled = true;
+            }
         }
 
         private void SMPClientProducer_SMPResponsePacketRecieved(object sender, SMPResponsePacketEventArgs e)
@@ -67,7 +85,7 @@ namespace SMPClientProducer
         {
             try
             {
-                textBoxServerResponse.Text = eventArgs.ResponseMessage;
+                textBoxServerResponse.Text = eventArgs.ResponseMessage.Trim();
             }
             catch (Exception ex)
             {

@@ -1,5 +1,6 @@
 using SMP_Library;
 using System;
+using System.Diagnostics.Tracing;
 using System.Windows.Forms;
 
 namespace SMPClientConsumer
@@ -15,6 +16,9 @@ namespace SMPClientConsumer
 
         private void buttonGetMessage_Click(object sender, EventArgs e)
         {
+            textBoxServerIPAddress.Enabled = false;
+            textBoxApplicationPortNumber.Enabled = false;
+            buttonGetMessage.Enabled = false;
             int priority;
 
             //Get the message priority
@@ -43,11 +47,23 @@ namespace SMPClientConsumer
                 null,
                 null);
 
-            //Send the packet
-            MessageConsumer.SendSmpPacket(textBoxServerIPAddress.Text, 
-                int.Parse(textBoxApplicationPortNumber.Text), smpPacket);
-
-            MessageBox.Show("Message retrieved...", "Message Status", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            try
+            {
+                //Send the packet
+                MessageConsumer.SendSmpPacket(textBoxServerIPAddress.Text,
+                    int.Parse(textBoxApplicationPortNumber.Text), smpPacket);
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.LogExeption(ex);
+                MessageBox.Show(ex.Message, ex.GetType().Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                textBoxServerIPAddress.Enabled = true;
+                textBoxApplicationPortNumber.Enabled = true;
+                buttonGetMessage.Enabled = true;
+            }
         }
 
         private void SMPClientConsumer_SMPResponsePacketRecieved(object sender, SMPResponsePacketEventArgs e)
@@ -65,7 +81,17 @@ namespace SMPClientConsumer
         {
             try
             {
-                textBoxMessageContent.Text = eventArgs.ResponseMessage;
+                if (eventArgs.ResponseMessage.IndexOf('\n') == eventArgs.ResponseMessage.LastIndexOf('\n'))
+                {
+                    // Response does not contain a date or a message record. It must be an error.
+                    MessageBox.Show(eventArgs.ResponseMessage, "Message Status", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                else
+                {
+                    // Response contains a date and a message record
+                    MessageBox.Show("Message retrieved...", "Message Status", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    textBoxMessageContent.Text = eventArgs.ResponseMessage;
+                }
             }
             catch (Exception ex)
             {

@@ -12,29 +12,29 @@ namespace SMPClientProducer
 
         public static void SendSmpPacket(string serverIpAddress, int port, SmpPacket smpPacket)
         {
-            TcpClient client = new TcpClient(serverIpAddress, port);
-            NetworkStream networkStream = client.GetStream();
+            using (TcpClient client = new TcpClient(serverIpAddress, port))
+            {
+                using (NetworkStream networkStream = client.GetStream())
+                using (StreamWriter writer = new StreamWriter(networkStream))
+                using (StreamReader reader = new StreamReader(networkStream))
+                {
+                    // Send the SMP packet
+                    writer.Write(smpPacket);
+                    writer.Flush();
 
-            //Send the SMP packet
-            StreamWriter writer = new StreamWriter(networkStream);
-            writer.WriteLine(smpPacket);
-            writer.Flush();
+                    // Receive SMP Response from server
+                    string responsePacket = reader.ReadToEnd();
 
-            //Receive SMP Response from server
-            StreamReader reader = new StreamReader(networkStream);
-            string responsePacket = reader.ReadLine();
-
-            //Done with the server
-            reader.Close();
-            writer.Close();
-
-            ProcessSmpResponsePacket(responsePacket);
+                    // Process the received response packet
+                    ProcessSmpResponsePacket(responsePacket);
+                }
+            }
         }
         private static void ProcessSmpResponsePacket(string responsePacket)
         {
             SMPResponsePacketEventArgs eventArgs = new SMPResponsePacketEventArgs(responsePacket);
 
-            if (SMPResponsePacketRecieved != null) SMPResponsePacketRecieved(null, eventArgs);
+            SMPResponsePacketRecieved?.Invoke(null, eventArgs);
         }
     }
 }
