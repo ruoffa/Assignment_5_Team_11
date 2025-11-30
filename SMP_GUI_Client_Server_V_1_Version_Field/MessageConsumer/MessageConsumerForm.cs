@@ -1,4 +1,4 @@
-﻿using SMP_Library;
+using SMP_Library;
 using System;
 using System.Windows.Forms;
 
@@ -31,9 +31,17 @@ namespace SMPClientConsumer
                 priority = 3;
             }
 
-            //Build the SMP packet
-            SmpPacket smpPacket = new SmpPacket(Enumerations.SmpVersion.Version_1_0.ToString(),
-                Enumerations.SmpMessageType.GetMessage.ToString(), priority.ToString(), null, null);
+            string userId = textBoxUserId.Text;
+            string password = textBoxPassword.Text;
+
+            SmpPacket smpPacket = new SmpPacket(
+                Enumerations.SmpVersion.Version_2_0.ToString(),
+                userId,
+                password,
+                Enumerations.SmpMessageType.GetMessage.ToString(),
+                priority.ToString(),
+                null,
+                null);
 
             //Send the packet
             MessageConsumer.SendSmpPacket(textBoxServerIPAddress.Text, 
