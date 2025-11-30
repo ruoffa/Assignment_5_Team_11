@@ -78,12 +78,16 @@ namespace SMPServer
 
             while (version != null)
             {
+                string userId = reader.ReadLine();
+                string password = reader.ReadLine();
                 string priority = reader.ReadLine();
                 string dateTime = reader.ReadLine();
                 string message = reader.ReadLine();
                 string emptyLine = reader.ReadLine();
 
                 string record = "Version: " + version + Environment.NewLine;
+                record += "User ID: " +  userId + Environment.NewLine;
+                record += "Password: " + password + Environment.NewLine;
                 record += "Priority: " + priority + Environment.NewLine;
                 record += "Date/Time: " + dateTime + Environment.NewLine;
                 record += "Message: " + message + Environment.NewLine;

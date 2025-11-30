@@ -2,15 +2,8 @@
 {
     partial class FormSmpServer
     {
-        /// <summary>
-        /// Required designer variable.
-        /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
-        /// Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -22,10 +15,6 @@
 
         #region Windows Form Designer generated code
 
-        /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
-        /// </summary>
         private void InitializeComponent()
         {
             this.buttonStartServer = new System.Windows.Forms.Button();
@@ -38,6 +27,10 @@
             this.textBoxMessages = new System.Windows.Forms.TextBox();
             this.buttonShowMessages = new System.Windows.Forms.Button();
             this.textBoxMessageType = new System.Windows.Forms.TextBox();
+            this.textBoxUserId = new System.Windows.Forms.TextBox();
+            this.labelUserId = new System.Windows.Forms.Label();
+            this.textBoxPassword = new System.Windows.Forms.TextBox();
+            this.labelPassword = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
@@ -68,7 +61,7 @@
             this.groupBox1.Controls.Add(this.groupBox3);
             this.groupBox1.Controls.Add(this.textBoxMessages);
             this.groupBox1.Controls.Add(this.buttonShowMessages);
-            this.groupBox1.Location = new System.Drawing.Point(12, 246);
+            this.groupBox1.Location = new System.Drawing.Point(12, 300);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(574, 341);
             this.groupBox1.TabIndex = 8;
@@ -149,15 +142,63 @@
             this.buttonShowMessages.UseVisualStyleBackColor = true;
             this.buttonShowMessages.Click += new System.EventHandler(this.buttonShowMessages_Click);
             // 
+            // textBoxUserId
+            // 
+            this.textBoxUserId.Location = new System.Drawing.Point(142, 30);
+            this.textBoxUserId.Multiline = true;
+            this.textBoxUserId.Name = "textBoxUserId";
+            this.textBoxUserId.ScrollBars = System.Windows.Forms.ScrollBars.Horizontal;
+            this.textBoxUserId.Size = new System.Drawing.Size(126, 30);
+            this.textBoxUserId.TabIndex = 13;
+            this.textBoxUserId.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // labelUserId
+            // 
+            this.labelUserId.AutoSize = true;
+            this.labelUserId.Location = new System.Drawing.Point(14, 35);
+            this.labelUserId.Name = "labelUserId";
+            this.labelUserId.Size = new System.Drawing.Size(63, 20);
+            this.labelUserId.TabIndex = 14;
+            this.labelUserId.Text = "User ID";
+            // 
+            // textBoxPassword
+            // 
+            this.textBoxPassword.Location = new System.Drawing.Point(419, 30);
+            this.textBoxPassword.Multiline = true;
+            this.textBoxPassword.Name = "textBoxPassword";
+            this.textBoxPassword.ScrollBars = System.Windows.Forms.ScrollBars.Horizontal;
+            this.textBoxPassword.Size = new System.Drawing.Size(132, 30);
+            this.textBoxPassword.TabIndex = 15;
+            this.textBoxPassword.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // labelPassword
+            // 
+            this.labelPassword.AutoSize = true;
+            this.labelPassword.Location = new System.Drawing.Point(274, 35);
+            this.labelPassword.Name = "labelPassword";
+            this.labelPassword.Size = new System.Drawing.Size(78, 20);
+            this.labelPassword.TabIndex = 16;
+            this.labelPassword.Text = "Password";
+            // 
             // textBoxMessageType
             // 
-            this.textBoxMessageType.Location = new System.Drawing.Point(142, 39);
+            this.textBoxMessageType.Location = new System.Drawing.Point(142, 75);
             this.textBoxMessageType.Multiline = true;
             this.textBoxMessageType.Name = "textBoxMessageType";
             this.textBoxMessageType.ScrollBars = System.Windows.Forms.ScrollBars.Horizontal;
             this.textBoxMessageType.Size = new System.Drawing.Size(126, 30);
             this.textBoxMessageType.TabIndex = 9;
             this.textBoxMessageType.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // textBoxMessagePriority
+            // 
+            this.textBoxMessagePriority.Location = new System.Drawing.Point(419, 75);
+            this.textBoxMessagePriority.Multiline = true;
+            this.textBoxMessagePriority.Name = "textBoxMessagePriority";
+            this.textBoxMessagePriority.ScrollBars = System.Windows.Forms.ScrollBars.Horizontal;
+            this.textBoxMessagePriority.Size = new System.Drawing.Size(132, 30);
+            this.textBoxMessagePriority.TabIndex = 17;
+            this.textBoxMessagePriority.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // groupBox2
             // 
@@ -214,9 +255,13 @@
             this.groupBox4.Controls.Add(this.textBoxMessagePriority);
             this.groupBox4.Controls.Add(this.label3);
             this.groupBox4.Controls.Add(this.textBoxMessageType);
+            this.groupBox4.Controls.Add(this.textBoxUserId);
+            this.groupBox4.Controls.Add(this.labelUserId);
+            this.groupBox4.Controls.Add(this.textBoxPassword);
+            this.groupBox4.Controls.Add(this.labelPassword);
             this.groupBox4.Location = new System.Drawing.Point(12, 144);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(574, 96);
+            this.groupBox4.Size = new System.Drawing.Size(574, 130);
             this.groupBox4.TabIndex = 12;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Last Received Message";
@@ -224,26 +269,16 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(274, 42);
+            this.label4.Location = new System.Drawing.Point(274, 80);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(125, 20);
             this.label4.TabIndex = 12;
             this.label4.Text = "Message Priority";
             // 
-            // textBoxMessagePriority
-            // 
-            this.textBoxMessagePriority.Location = new System.Drawing.Point(419, 39);
-            this.textBoxMessagePriority.Multiline = true;
-            this.textBoxMessagePriority.Name = "textBoxMessagePriority";
-            this.textBoxMessagePriority.ScrollBars = System.Windows.Forms.ScrollBars.Horizontal;
-            this.textBoxMessagePriority.Size = new System.Drawing.Size(132, 30);
-            this.textBoxMessagePriority.TabIndex = 11;
-            this.textBoxMessagePriority.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(14, 42);
+            this.label3.Location = new System.Drawing.Point(14, 80);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(112, 20);
             this.label3.TabIndex = 10;
@@ -253,7 +288,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(610, 606);
+            this.ClientSize = new System.Drawing.Size(610, 650);
             this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
@@ -262,7 +297,7 @@
             this.MinimizeBox = false;
             this.Name = "FormSmpServer";
             this.ShowIcon = false;
-            this.Text = "Message Server Version 1.0";
+            this.Text = "Message Server Version 2.0";
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.groupBox3.ResumeLayout(false);
@@ -276,6 +311,7 @@
         }
 
         #endregion
+
         private System.Windows.Forms.Button buttonStartServer;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.GroupBox groupBox3;
@@ -286,6 +322,10 @@
         private System.Windows.Forms.TextBox textBoxMessages;
         private System.Windows.Forms.Button buttonShowMessages;
         private System.Windows.Forms.TextBox textBoxMessageType;
+        private System.Windows.Forms.TextBox textBoxUserId;
+        private System.Windows.Forms.Label labelUserId;
+        private System.Windows.Forms.TextBox textBoxPassword;
+        private System.Windows.Forms.Label labelPassword;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label1;
@@ -297,4 +337,3 @@
         private System.Windows.Forms.TextBox textBoxMessagePriority;
     }
 }
-
