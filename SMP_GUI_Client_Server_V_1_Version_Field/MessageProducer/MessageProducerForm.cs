@@ -37,6 +37,21 @@ namespace SMPClientProducer
 
             string userId = textBoxUserId.Text;
             string password = textBoxPassword.Text;
+            string plainMessage = textBoxMessageContent.Text;
+            string encryptedMessage;
+
+            try
+            {
+                encryptedMessage = Encryption.EncryptMessage(plainMessage, "PublicKey.xml");
+            }
+            catch (Exception encEx)
+            {
+                MessageBox.Show("Message encryption failed: " + encEx.Message, "Encryption Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                textBoxServerIPAddress.Enabled = true;
+                textBoxApplicationPortNumber.Enabled = true;
+                buttonSendMessage.Enabled = true;
+                return;
+            }
 
             string message = textBoxMessageContent.Text;
 
@@ -47,7 +62,7 @@ namespace SMPClientProducer
                 Enumerations.SmpMessageType.PutMessage.ToString(),
                 priority.ToString(),
                 DateTime.Now.ToString(),
-                message);
+                encryptedMessage);
 
             try
             {

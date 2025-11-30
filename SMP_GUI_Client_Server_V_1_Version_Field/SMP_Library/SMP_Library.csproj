@@ -39,11 +39,16 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Encryption.cs" />
     <Compile Include="Enumerations.cs" />
     <Compile Include="ExceptionLogger.cs" />
     <Compile Include="PacketEventArgs.cs" />
     <Compile Include="SmpPacket.cs" />
     <Compile Include="SMPResponsePacketEventArgs.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Serialization" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
