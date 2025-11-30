@@ -115,10 +115,11 @@ namespace SMPServer
                 record += smpPacket.Priority + Environment.NewLine;
                 record += smpPacket.DateTime + Environment.NewLine;
                 record += smpPacket.Message + Environment.NewLine;
+                record += Environment.NewLine;
 
                 StreamWriter writer = new StreamWriter("Messages.txt", true);
 
-                writer.WriteLine(record);
+                writer.Write(record);
                 writer.Flush();
 
                 writer.Close();
