@@ -55,9 +55,13 @@ namespace SMPServer
             {
                 if (eventArgs != null)
                 {
+                    string userId = eventArgs.SmpPacket.UserId;
+                    string password = eventArgs.SmpPacket.Password;
                     string messageType = eventArgs.SmpPacket.MessageType.ToString();
                     string messagePriority = eventArgs.SmpPacket.Priority;
 
+                    textBoxUserId.Text = userId;
+                    textBoxPassword.Text = password;
                     textBoxMessageType.Text = messageType;
                     textBoxMessagePriority.Text = messagePriority;
                 }

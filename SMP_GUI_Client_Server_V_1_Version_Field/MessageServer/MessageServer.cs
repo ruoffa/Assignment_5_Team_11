@@ -74,7 +74,7 @@ namespace SMPServer
                     string dateTime = networkStreamReader.ReadLine();
                     string message = networkStreamReader.ReadLine();
 
-                    SmpPacket smpPacket = ProcessSmpGetPacket(priority);
+                    SmpPacket smpPacket = ProcessSmpGetPacket(userId, password, priority);
 
                     if (smpPacket != null)
                     {
@@ -87,7 +87,7 @@ namespace SMPServer
                     }
                     else
                     {
-                        string responsePacket = "No messages found." + Environment.NewLine;
+                        string responsePacket = "No messages found. Please check your credentials and try again." + Environment.NewLine;
                         SendSmpResponsePacket(responsePacket, networkStream);
                     }
 
@@ -137,10 +137,10 @@ namespace SMPServer
             }
         }
 
-        private static SmpPacket ProcessSmpGetPacket(string requestedPriority)
+        private static SmpPacket ProcessSmpGetPacket(string requestedUserId, string requestedPassword, string requestedPriority)
         {
             SmpPacket smpPacket = null;
-            
+
             try
             {
                 if (!File.Exists("Messages.txt"))
@@ -162,7 +162,7 @@ namespace SMPServer
                     string message = reader.ReadLine();
                     string emptyLine = reader.ReadLine();
 
-                    if (priority == requestedPriority)
+                    if (userId == requestedUserId && password == requestedPassword && priority == requestedPriority)
                     {
                         smpPacket = new SmpPacket(smpVersion, userId, password, 
                             Enumerations.SmpMessageType.GetMessage.ToString(),
