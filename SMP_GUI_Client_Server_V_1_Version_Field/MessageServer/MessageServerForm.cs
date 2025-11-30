@@ -76,6 +76,11 @@ namespace SMPServer
         {
             textBoxMessages.Clear();
 
+            if (!File.Exists("Messages.txt"))
+            {
+                return;
+            }
+
             StreamReader reader = new StreamReader("Messages.txt");
 
             string version = reader.ReadLine();
