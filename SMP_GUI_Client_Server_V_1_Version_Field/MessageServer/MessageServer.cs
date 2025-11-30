@@ -1,4 +1,4 @@
-﻿using SMP_Library;
+using SMP_Library;
 using System;
 using System.IO;
 using System.Net;
