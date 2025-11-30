@@ -30,6 +30,8 @@ namespace SMPServer
                 MessageBox.Show("Server started...", "Server Status", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 buttonStartServer.Enabled = false;
+                textBoxServerIPAddress.Enabled = false;
+                textBoxPortNumber.Enabled = false;
             }
             catch (Exception ex)
             {
