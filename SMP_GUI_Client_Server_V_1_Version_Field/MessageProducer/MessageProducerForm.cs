@@ -42,7 +42,7 @@ namespace SMPClientProducer
 
             try
             {
-                encryptedMessage = Encryption.EncryptMessage(plainMessage, "PublicKey.xml");
+                encryptedMessage = Encryption.EncryptMessage(plainMessage, "../../PublicKey.xml");
             }
             catch (Exception encEx)
             {

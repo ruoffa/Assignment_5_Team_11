@@ -101,7 +101,7 @@ namespace SMPClientConsumer
                             string dateTime = lines[1];
                             string encryptedMessage = lines[2];
 
-                            string decryptedMessage = Encryption.DecryptMessage(encryptedMessage, "PrivateKey.xml");
+                            string decryptedMessage = Encryption.DecryptMessage(encryptedMessage, "../../PrivateKey.xml");
 
                             string displayText = "Message Information:" + Environment.NewLine;
                             displayText += dateTime + Environment.NewLine;
