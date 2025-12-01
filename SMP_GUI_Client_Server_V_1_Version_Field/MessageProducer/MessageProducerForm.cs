@@ -1,11 +1,14 @@
-using SMP_Library;
+﻿using SMP_Library;
 using System;
+using System.IO;
 using System.Windows.Forms;
 
 namespace SMPClientProducer
 {
     public partial class MessageProducerForm : Form
     {
+        private const string PUBLIC_KEY_FILENAME = "PublicKey.xml";
+
         public MessageProducerForm()
         {
             InitializeComponent();
@@ -42,7 +45,18 @@ namespace SMPClientProducer
 
             try
             {
-                encryptedMessage = Encryption.EncryptMessage(plainMessage, "../../PublicKey.xml");
+                if (!File.Exists(PUBLIC_KEY_FILENAME))
+                {
+                    MessageBox.Show("PublicKey.xml not found!\n\n" +
+                                  "Please start the SMP Server first to generate encryption keys.", 
+                        "Missing Public Key", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    textBoxServerIPAddress.Enabled = true;
+                    textBoxApplicationPortNumber.Enabled = true;
+                    buttonSendMessage.Enabled = true;
+                    return;
+                }
+
+                encryptedMessage = Encryption.EncryptMessage(plainMessage, PUBLIC_KEY_FILENAME);
             }
             catch (Exception encEx)
             {

@@ -1,4 +1,4 @@
-using SMP_Library;
+﻿using SMP_Library;
 using System;
 using System.IO;
 using System.Threading;
@@ -20,6 +20,8 @@ namespace SMPServer
         {
             try
             {
+                GenerateAndDistributeKeys();
+
                 IpAddress = textBoxServerIPAddress.Text;
                 Port = int.Parse(textBoxPortNumber.Text);
 
@@ -35,6 +37,52 @@ namespace SMPServer
             }
             catch (Exception ex)
             {
+                ExceptionLogger.LogExeption(ex);
+            }
+        }
+
+        private void GenerateAndDistributeKeys()
+        {
+            try
+            {
+                string serverDirectory = Directory.GetCurrentDirectory();
+                string publicKeyPath = Path.Combine(serverDirectory, "PublicKey.xml");
+                string privateKeyPath = Path.Combine(serverDirectory, "PrivateKey.xml");
+
+                Encryption.GeneratePublicPrivateKeyPair(publicKeyPath, privateKeyPath);
+
+                string parentDirectory = Directory.GetParent(serverDirectory).FullName;
+
+                string producerDirectory = Path.Combine(parentDirectory, "MessageProducer");
+                string consumerDirectory = Path.Combine(parentDirectory, "MessageConsumer");
+
+                if (Directory.Exists(producerDirectory))
+                {
+                    string producerPublicKeyPath = Path.Combine(producerDirectory, "PublicKey.xml");
+                    File.Copy(publicKeyPath, producerPublicKeyPath, true);
+                }
+                else
+                {
+                    MessageBox.Show("Producer directory not found at: " + producerDirectory, 
+                        "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+
+                if (Directory.Exists(consumerDirectory))
+                {
+                    string consumerPrivateKeyPath = Path.Combine(consumerDirectory, "PrivateKey.xml");
+                    File.Copy(privateKeyPath, consumerPrivateKeyPath, true);
+                }
+                else
+                {
+                    MessageBox.Show("Consumer directory not found at: " + consumerDirectory, 
+                        "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to generate or distribute keys: " + ex.Message, 
+                    "Key Generation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 ExceptionLogger.LogExeption(ex);
             }
         }

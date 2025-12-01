@@ -1,11 +1,14 @@
 using SMP_Library;
 using System;
+using System.IO;
 using System.Windows.Forms;
 
 namespace SMPClientConsumer
 {
     public partial class MessageConsumerForm : Form
     {
+        private const string PRIVATE_KEY_FILENAME = "PrivateKey.xml";
+
         public MessageConsumerForm()
         {
             InitializeComponent();
@@ -95,11 +98,20 @@ namespace SMPClientConsumer
                     // Response contains at least 3 entries (title, date and a message record).
                     try
                     {
+                        if (!File.Exists(PRIVATE_KEY_FILENAME))
+                        {
+                            MessageBox.Show("PrivateKey.xml not found!\n\n" +
+                                          "Please start the SMP Server first to generate encryption keys.", 
+                                "Missing Private Key", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            textBoxMessageContent.Text = "Error: Private key file not found.";
+                            return;
+                        }
+
                         string title = entries[0];
                         string dateTime = entries[1];
                         string encryptedMessage = entries[2];
 
-                        string decryptedMessage = Encryption.DecryptMessage(encryptedMessage, "../../PrivateKey.xml");
+                        string decryptedMessage = Encryption.DecryptMessage(encryptedMessage, PRIVATE_KEY_FILENAME);
 
                         string displayText = title + Environment.NewLine;
                         displayText += dateTime + Environment.NewLine;
