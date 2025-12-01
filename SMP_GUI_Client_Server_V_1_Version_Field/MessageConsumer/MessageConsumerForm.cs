@@ -82,8 +82,9 @@ namespace SMPClientConsumer
             try
             {
                 string response = eventArgs.ResponseMessage;
+                string[] entries = response.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
 
-                if (response.IndexOf('\n') == response.LastIndexOf('\n'))
+                if (entries.Length <= 2)
                 {
                     // Response does not contain a date or a message record. It must be an error.
                     MessageBox.Show(response, "Message Status", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -91,35 +92,26 @@ namespace SMPClientConsumer
                 }
                 else
                 {
-                    // Response contains a date and a message record
-                    string[] lines = response.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
-                    if (lines.Length >= 3)
+                    // Response contains at least 3 entries (title, date and a message record).
+                    try
                     {
-                        try
-                        {
-                            string dateTime = lines[1];
-                            string encryptedMessage = lines[2];
+                        string title = entries[0];
+                        string dateTime = entries[1];
+                        string encryptedMessage = entries[2];
 
-                            string decryptedMessage = Encryption.DecryptMessage(encryptedMessage, "../../PrivateKey.xml");
+                        string decryptedMessage = Encryption.DecryptMessage(encryptedMessage, "../../PrivateKey.xml");
 
-                            string displayText = "Message Information:" + Environment.NewLine;
-                            displayText += dateTime + Environment.NewLine;
-                            displayText += decryptedMessage;
+                        string displayText = title + Environment.NewLine;
+                        displayText += dateTime + Environment.NewLine;
+                        displayText += decryptedMessage;
 
-                            MessageBox.Show("Message retrieved and decrypted...", "Message Status", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            textBoxMessageContent.Text = displayText;
-                        }
-                        catch (Exception decEx)
-                        {
-                            MessageBox.Show("Decryption failed: " + decEx.Message, "Decryption Error", MessageBoxButtons.OK);
-                            textBoxMessageContent.Text = "Error: Could not decrypt message. \n" + response;
-                        }
+                        MessageBox.Show("Message retrieved and decrypted...", "Message Status", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        textBoxMessageContent.Text = displayText;
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        MessageBox.Show("Message retrieved...", "Message Status", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        textBoxMessageContent.Text = response;
+                        MessageBox.Show("Decryption failed: " + ex.Message, "Decryption Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        textBoxMessageContent.Text = "Error: Could not decrypt message." + Environment.NewLine + response;
                     }
                 }
             }
