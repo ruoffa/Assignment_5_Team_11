@@ -19,7 +19,7 @@ namespace SMPClientProducer
                 using (StreamReader reader = new StreamReader(networkStream))
                 {
                     // Send the SMP packet
-                    writer.Write(smpPacket);
+                    smpPacket.Write(writer);
                     writer.Flush();
 
                     // Receive SMP Response from server

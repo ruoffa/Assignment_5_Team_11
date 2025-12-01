@@ -107,7 +107,7 @@ namespace SMPServer
                 {
                     string userId = eventArgs.SmpPacket.UserId;
                     string password = eventArgs.SmpPacket.Password;
-                    string messageType = eventArgs.SmpPacket.MessageType.ToString();
+                    string messageType = eventArgs.SmpPacket.MessageType;
                     string messagePriority = eventArgs.SmpPacket.Priority;
 
                     textBoxUserId.Text = userId;
@@ -139,6 +139,7 @@ namespace SMPServer
             {
                 string userId = reader.ReadLine();
                 string password = reader.ReadLine();
+                string messageType = reader.ReadLine();
                 string priority = reader.ReadLine();
                 string dateTime = reader.ReadLine();
                 string message = reader.ReadLine();
@@ -155,8 +156,9 @@ namespace SMPServer
                     record += "Priority: " + priority + Environment.NewLine;
                     record += "Date/Time: " + dateTime + Environment.NewLine;
                     record += "Message: " + message + Environment.NewLine;
+                    record += emptyLine + Environment.NewLine;
 
-                    textBoxMessages.AppendText(record + Environment.NewLine);
+                    textBoxMessages.AppendText(record);
                 }
 
                 version = reader.ReadLine();

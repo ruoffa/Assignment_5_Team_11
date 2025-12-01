@@ -85,7 +85,7 @@ namespace SMPClientConsumer
             try
             {
                 string response = eventArgs.ResponseMessage;
-                string[] entries = response.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+                string[] entries = response.Split('\n');
 
                 if (entries.Length <= 2)
                 {

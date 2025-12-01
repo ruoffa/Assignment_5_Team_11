@@ -32,158 +32,123 @@ namespace SMPServer
 
         public static void ProcessConnection(TcpClient connection)
         {
-            NetworkStream networkStream = connection.GetStream();
-
-            StreamReader networkStreamReader = new StreamReader(networkStream);
-
-            // Read in the order that ToString() sends them:
-            // Version, UserId, Password, MessageType, Priority, DateTime, Message
-            string version = networkStreamReader.ReadLine();
-
-            if (version == Enumerations.SmpVersion.Version_2_0.ToString())
+            using (NetworkStream networkStream = connection.GetStream())
+            using (StreamReader networkStreamReader = new StreamReader(networkStream))
+            using (StreamWriter networkStreamWriter = new StreamWriter(networkStream))
             {
-                string userId = networkStreamReader.ReadLine();
-                string password = networkStreamReader.ReadLine();
-                string messageType = networkStreamReader.ReadLine();
-                string priority = networkStreamReader.ReadLine();
-                string dateTime = networkStreamReader.ReadLine();
-                string message = networkStreamReader.ReadLine();
+                // Attempt to read a request from the network stream.
+                SmpPacket request;
 
-                if (messageType == Enumerations.SmpMessageType.PutMessage.ToString())
+                try
                 {
-                    SmpPacket smpPacket = new SmpPacket(version, userId, password, messageType, priority, dateTime, message);
-
-                    ProcessSmpPutPacket(smpPacket);
-
-                    string responsePacket = "Received Packet: " + DateTime.Now + Environment.NewLine;
-
-                    SendSmpResponsePacket(responsePacket, networkStream);
-
-                    networkStreamReader.Close();
-
-                    PacketEventArgs eventArgs = new PacketEventArgs(smpPacket);
-
-                    PacketRecieved?.Invoke(null, eventArgs);
+                    request = ReceiveSmpRequestPacket(networkStreamReader);
                 }
-                else if (messageType == Enumerations.SmpMessageType.GetMessage.ToString())
+                catch (Exception ex)
                 {
-                    SmpPacket smpPacket = ProcessSmpGetPacket(userId, password, priority);
-                    string responsePacket;
-
-                    if (smpPacket != null)
-                    {
-                        string record = smpPacket.DateTime + Environment.NewLine;
-                        record += smpPacket.Message + Environment.NewLine;
-
-                        responsePacket = "Message Information: " + Environment.NewLine + record;
-                    }
-                    else
-                    {
-                        responsePacket = "No messages found. Please check your credentials and try again." + Environment.NewLine;
-                    }
-
-                    SendSmpResponsePacket(responsePacket, networkStream);
-
-                    networkStreamReader.Close();
-
-                    if (smpPacket != null)
-                    {
-                        PacketEventArgs eventArgs = new PacketEventArgs(smpPacket);
-                        PacketRecieved?.Invoke(null, eventArgs);
-                    }
+                    SendSmpResponsePacket(ex.Message, networkStreamWriter);
+                    return;
                 }
-            }
-            else
-            {
-                string responsePacket = "Unsupported Version: " + version + Environment.NewLine;
 
-                SendSmpResponsePacket(responsePacket, networkStream);
+                // Update the UI.
+                PacketRecieved?.Invoke(null, new PacketEventArgs(request));
 
-                networkStreamReader.Close();
+                // Process and get the response string based on the request message type.
+                string response;
+
+                if (request.MessageType == Enumerations.SmpMessageType.PutMessage.ToString())
+                {
+                    response = ProcessSmpPutPacket(request);
+                }
+                else if (request.MessageType == Enumerations.SmpMessageType.GetMessage.ToString())
+                {
+                    response = ProcessSmpGetPacket(request.UserId, request.Password, request.Priority);
+                }
+                else
+                {
+                    response = "Unsupported message type";
+                }
+
+                // Send the response string.
+                SendSmpResponsePacket(response, networkStreamWriter);
             }
         }
 
-        private static void ProcessSmpPutPacket(SmpPacket smpPacket)
+        private static string ProcessSmpPutPacket(SmpPacket smpPacket)
         {
             try
             {
-                if (smpPacket == null) return;
-
-                string record = smpPacket.Version + Environment.NewLine;
-                record += smpPacket.UserId + Environment.NewLine;
-                record += smpPacket.Password + Environment.NewLine;
-                record += smpPacket.Priority + Environment.NewLine;
-                record += smpPacket.DateTime + Environment.NewLine;
-                record += smpPacket.Message + Environment.NewLine;
-                record += Environment.NewLine;
-
-                StreamWriter writer = new StreamWriter("Messages.txt", true);
-
-                writer.Write(record);
-                writer.Flush();
-
-                writer.Close();
+                using (StreamWriter writer = new StreamWriter("Messages.txt", true))
+                {
+                    smpPacket.Write(writer);
+                    writer.WriteLine();
+                }
             }
             catch (Exception ex)
             {
                 ExceptionLogger.LogExeption(ex);
             }
+
+            return "Received Packet: " + DateTime.Now;
         }
-        private static SmpPacket ProcessSmpGetPacket(string requestedUserId, string requestedPassword, string requestedPriority)
+
+        private static string ProcessSmpGetPacket(string requestedUserId, string requestedPassword, string requestedPriority)
         {
             // The number of lines in a single message record.
-            const int recordSize = 7;
+            const int recordSize = 8;
 
             SmpPacket smpPacket = null;
 
             try
             {
-                if (!File.Exists("Messages.txt")) return null;
-
-                var lines = new List<string>(File.ReadAllLines("Messages.txt"));
-
-                int i = 0;
-                while (i <= lines.Count - recordSize)
+                if (File.Exists("Messages.txt"))
                 {
-                    string smpVersion = lines[i++];
-                    // Stop parsing if an incompatible record is found.
-                    if (smpVersion != Enumerations.SmpVersion.Version_2_0.ToString()) break;
+                    var lines = new List<string>(File.ReadAllLines("Messages.txt"));
 
-                    string userId = lines[i++];
-                    string password = lines[i++];
-                    string priority = lines[i++];
-                    string dateTime = lines[i++];
-                    string message = lines[i++];
-                    string emptyLine = lines[i++];
-
-                    if (userId == requestedUserId && password == requestedPassword && priority == requestedPriority)
+                    int i = 0;
+                    while (i <= lines.Count - recordSize)
                     {
-                        smpPacket = new SmpPacket(smpVersion, userId, password, Enumerations.SmpMessageType.GetMessage.ToString(), priority, dateTime, message);
-                        lines.RemoveRange(i - recordSize, recordSize);
-                        break;
-                    }
-                }
+                        string smpVersion = lines[i++];
+                        // Stop parsing if an incompatible record is found.
+                        if (smpVersion != Enumerations.SmpVersion.Version_2_0.ToString()) break;
 
-                // Update the messages file with the matching record removed.
-                File.WriteAllLines("Messages.txt", lines);
+                        string userId = lines[i++];
+                        string password = lines[i++];
+                        string messageType = lines[i++];
+                        string priority = lines[i++];
+                        string dateTime = lines[i++];
+                        string message = lines[i++];
+                        string emptyLine = lines[i++];
+
+                        if (userId == requestedUserId && password == requestedPassword && priority == requestedPriority)
+                        {
+                            smpPacket = new SmpPacket(smpVersion, userId, password, messageType, priority, dateTime, message);
+                            lines.RemoveRange(i - recordSize, recordSize);
+                            break;
+                        }
+                    }
+
+                    // Update the messages file with the matching record removed.
+                    File.WriteAllLines("Messages.txt", lines);
+                }
             }
             catch (Exception ex)
             {
                 ExceptionLogger.LogExeption(ex);
             }
 
-            return smpPacket;
+            return smpPacket != null
+                ? "Message Information: " + "\n" + smpPacket.DateTime + "\n" + smpPacket.Message
+                : "No messages found. Please check your credentials and try again.";
         }
 
-
-        private static void SendSmpResponsePacket(string responsePacket, Stream dataStream)
+        private static SmpPacket ReceiveSmpRequestPacket(StreamReader reader)
         {
-            StreamWriter writer = new StreamWriter(dataStream);
+            return SmpPacket.Read(reader);
+        }
 
-            writer.Write(responsePacket);
-            writer.Flush();
-
-            writer.Close();
+        private static void SendSmpResponsePacket(string responsePacket, StreamWriter writer)
+        {
+            writer.WriteLine(responsePacket);
         }
     }
 }

@@ -67,8 +67,6 @@ namespace SMPClientProducer
                 return;
             }
 
-            string message = textBoxMessageContent.Text;
-
             SmpPacket smpPacket = new SmpPacket(
                 Enumerations.SmpVersion.Version_2_0.ToString(),
                 userId,
