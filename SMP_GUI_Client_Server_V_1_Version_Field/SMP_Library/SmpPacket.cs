@@ -39,6 +39,13 @@ namespace SMP_Library
             writer.WriteLine(Message);
         }
 
+        // Write the packet's credentials, using the writer's native newline.
+        public void WriteCredentials(TextWriter writer)
+        {
+            writer.WriteLine(UserId);
+            writer.WriteLine(Password);
+        }
+
         /**
          * Read the packet from the reader as a string using the reader's native newline.
          * This will use Environment.NewLine for files and \n for networks.
@@ -47,7 +54,7 @@ namespace SMP_Library
         {
             string version = reader.ReadLine();
 
-            if (version != Enumerations.SmpVersion.Version_2_0.ToString())
+            if (version != Enumerations.SmpVersion.Version_3_0.ToString())
                 // Stop reading if the version is not supported.
                 throw new Exception("Unsupported SmpPacket version");
 

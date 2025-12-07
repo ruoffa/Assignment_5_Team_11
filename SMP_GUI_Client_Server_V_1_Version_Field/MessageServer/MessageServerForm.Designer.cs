@@ -18,6 +18,7 @@ namespace SMPServer
         private void InitializeComponent()
         {
             this.buttonStartServer = new System.Windows.Forms.Button();
+            this.buttonRegistrations = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.radioAll = new System.Windows.Forms.RadioButton();
@@ -50,11 +51,21 @@ namespace SMPServer
             // 
             this.buttonStartServer.Location = new System.Drawing.Point(23, 12);
             this.buttonStartServer.Name = "buttonStartServer";
-            this.buttonStartServer.Size = new System.Drawing.Size(147, 116);
+            this.buttonStartServer.Size = new System.Drawing.Size(147, 52);
             this.buttonStartServer.TabIndex = 3;
             this.buttonStartServer.Text = "Start Server";
             this.buttonStartServer.UseVisualStyleBackColor = true;
             this.buttonStartServer.Click += new System.EventHandler(this.buttonStartServer_Click);
+            // 
+            // buttonRegistrations
+            // 
+            this.buttonRegistrations.Location = new System.Drawing.Point(23, 76);
+            this.buttonRegistrations.Name = "buttonRegistrations";
+            this.buttonRegistrations.Size = new System.Drawing.Size(147, 52);
+            this.buttonRegistrations.TabIndex = 13;
+            this.buttonRegistrations.Text = "Registrations";
+            this.buttonRegistrations.UseVisualStyleBackColor = true;
+            this.buttonRegistrations.Click += new System.EventHandler(this.buttonRegistrations_Click);
             // 
             // groupBox1
             // 
@@ -289,6 +300,7 @@ namespace SMPServer
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(610, 650);
+            this.Controls.Add(this.buttonRegistrations);
             this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
@@ -297,7 +309,7 @@ namespace SMPServer
             this.MinimizeBox = false;
             this.Name = "FormSmpServer";
             this.ShowIcon = false;
-            this.Text = "Message Server Version 2.0";
+            this.Text = "Message Server Version 3.0";
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.groupBox3.ResumeLayout(false);
@@ -313,6 +325,7 @@ namespace SMPServer
         #endregion
 
         private System.Windows.Forms.Button buttonStartServer;
+        private System.Windows.Forms.Button buttonRegistrations;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.RadioButton radioAll;

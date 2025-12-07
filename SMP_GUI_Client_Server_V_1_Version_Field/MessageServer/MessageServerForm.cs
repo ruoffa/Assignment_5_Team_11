@@ -41,6 +41,21 @@ namespace SMPServer
             }
         }
 
+        private void buttonRegistrations_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                FormRegistrations registrationsForm = new FormRegistrations();
+                registrationsForm.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.LogExeption(ex);
+                MessageBox.Show("Error opening registrations form: " + ex.Message, 
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void GenerateAndDistributeKeys()
         {
             try
@@ -49,12 +64,17 @@ namespace SMPServer
                 string publicKeyPath = Path.Combine(serverDirectory, "PublicKey.xml");
                 string privateKeyPath = Path.Combine(serverDirectory, "PrivateKey.xml");
 
-                Encryption.GeneratePublicPrivateKeyPair(publicKeyPath, privateKeyPath);
+                // Only generate new keys if they don't already exist
+                if (!File.Exists(publicKeyPath) || !File.Exists(privateKeyPath))
+                {
+                    Encryption.GeneratePublicPrivateKeyPair(publicKeyPath, privateKeyPath);
+                }
 
                 string parentDirectory = Directory.GetParent(serverDirectory).FullName;
 
                 string producerDirectory = Path.Combine(parentDirectory, "MessageProducer");
                 string consumerDirectory = Path.Combine(parentDirectory, "MessageConsumer");
+                string registrationDirectory = Path.Combine(parentDirectory, "MessageRegistration");
 
                 if (Directory.Exists(producerDirectory))
                 {
@@ -75,6 +95,17 @@ namespace SMPServer
                 else
                 {
                     MessageBox.Show("Consumer directory not found at: " + consumerDirectory, 
+                        "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+
+                if (Directory.Exists(registrationDirectory))
+                {
+                    string registrationPublicKeyPath = Path.Combine(registrationDirectory, "PublicKey.xml");
+                    File.Copy(publicKeyPath, registrationPublicKeyPath, true);
+                }
+                else
+                {
+                    MessageBox.Show("Registration directory not found at: " + registrationDirectory, 
                         "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
 

@@ -67,10 +67,13 @@ namespace SMPClientProducer
                 return;
             }
 
+            string encryptedUserId = Encryption.EncryptMessage(userId, PUBLIC_KEY_FILENAME);
+            string encryptedPassword = Encryption.EncryptMessage(password, PUBLIC_KEY_FILENAME);
+
             SmpPacket smpPacket = new SmpPacket(
-                Enumerations.SmpVersion.Version_2_0.ToString(),
-                userId,
-                password,
+                Enumerations.SmpVersion.Version_3_0.ToString(),
+                encryptedUserId,
+                encryptedPassword,
                 Enumerations.SmpMessageType.PutMessage.ToString(),
                 priority.ToString(),
                 DateTime.Now.ToString(),

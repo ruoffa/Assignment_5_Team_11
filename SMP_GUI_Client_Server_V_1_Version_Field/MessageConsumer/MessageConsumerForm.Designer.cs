@@ -222,7 +222,7 @@ namespace SMPClientConsumer
             this.MinimizeBox = false;
             this.Name = "MessageConsumerForm";
             this.ShowIcon = false;
-            this.Text = "Message Consumer Version 2.0";
+            this.Text = "Message Consumer Version 3.0";
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);

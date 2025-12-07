@@ -40,15 +40,17 @@ namespace SMPClientConsumer
 
             string userId = textBoxUserId.Text;
             string password = textBoxPassword.Text;
+            string encryptedUserId = Encryption.EncryptMessage(userId, PRIVATE_KEY_FILENAME);
+            string encryptedPassword = Encryption.EncryptMessage(password, PRIVATE_KEY_FILENAME);
 
             SmpPacket smpPacket = new SmpPacket(
-                Enumerations.SmpVersion.Version_2_0.ToString(),
-                userId,
-                password,
+                Enumerations.SmpVersion.Version_3_0.ToString(),
+                encryptedUserId,
+                encryptedPassword,
                 Enumerations.SmpMessageType.GetMessage.ToString(),
                 priority.ToString(),
-                null,
-                null);
+                DateTime.Now.ToString(),
+                "");
 
             try
             {

@@ -4,12 +4,13 @@
     {
         public enum SmpVersion
         {
-            Version_2_0
+            Version_3_0
         }
         public enum SmpMessageType
         {
             PutMessage,
-            GetMessage
+            GetMessage,
+            Registration
         }
     }
 }

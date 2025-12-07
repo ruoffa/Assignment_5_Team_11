@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{A24CEDDA-A4AA-4ECA-808F-0C5BCC8C7D27}</ProjectGuid>
+    <ProjectGuid>{AAFBEB37-9C57-4123-A20A-63E2CA54B698}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>SMPServer</RootNamespace>
-    <AssemblyName>SMPServer</AssemblyName>
+    <RootNamespace>SMPClientRegistration</RootNamespace>
+    <AssemblyName>SMPClientRegistration</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -47,17 +47,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MessageServer.cs" />
-    <Compile Include="MessageServerForm.cs">
+    <Compile Include="MessageRegistrationForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="MessageServerForm.Designer.cs">
-      <DependentUpon>MessageServerForm.cs</DependentUpon>
+    <Compile Include="MessageRegistrationForm.Designer.cs">
+      <DependentUpon>MessageRegistrationForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="MessageServerForm.resx">
-      <DependentUpon>MessageServerForm.cs</DependentUpon>
+    <Compile Include="MessageRegistration.cs" />
+    <EmbeddedResource Include="MessageRegistrationForm.resx">
+      <DependentUpon>MessageRegistrationForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -68,12 +68,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="RegistrationsForm.cs">
-    <SubType>Form</SubType>
-  </Compile>
-  <Compile Include="RegistrationsForm.Designer.cs">
-    <DependentUpon>RegistrationsForm.cs</DependentUpon>
-  </Compile>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
