@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{A24CEDDA-A4AA-4ECA-808F-0C5BCC8C7D27}</ProjectGuid>
+    <ProjectGuid>{FF157485-52C6-4D89-BA69-DCCB0BBC0786}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>SMPServer</RootNamespace>
     <AssemblyName>SMPServer</AssemblyName>
@@ -69,11 +69,11 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="RegistrationsForm.cs">
-    <SubType>Form</SubType>
-  </Compile>
-  <Compile Include="RegistrationsForm.Designer.cs">
-    <DependentUpon>RegistrationsForm.cs</DependentUpon>
-  </Compile>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RegistrationsForm.Designer.cs">
+      <DependentUpon>RegistrationsForm.cs</DependentUpon>
+    </Compile>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
