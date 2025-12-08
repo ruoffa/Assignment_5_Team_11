@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 using SMP_Library;
@@ -21,41 +22,38 @@ namespace SMPServer
 
         private void LoadRegistrations()
         {
-            textBoxRegistrations.Clear();
+            const int recordSize = 3;
 
-            if (!File.Exists("Registrations.txt"))
-            {
-                textBoxRegistrations.Text = "No registrations found.";
-                return;
-            }
+            buttonShowRegistrations.Text = "Loading";
+            buttonShowRegistrations.Enabled = false;
+
+            textBoxRegistrations.Clear();
 
             try
             {
-                using (StreamReader reader = new StreamReader("Registrations.txt"))
+                if (File.Exists("Registrations.txt"))
                 {
-                    bool isUserId = true;
-                    string line;
-                    while ((line = reader.ReadLine()) != null)
+                    var lines = new List<string>(File.ReadAllLines("Registrations.txt"));
+
+                    int i = 0;
+                    while (i <= lines.Count - recordSize)
                     {
-                      if (!string.IsNullOrWhiteSpace(line))
-                      {
-                        if (isUserId)
+                        string userId = lines[i++];
+                        string password = lines[i++];
+                        string emptyLine = lines[i++];
+
+                        textBoxRegistrations.AppendText("User Id: " +
+                                                        Encryption.DecryptMessage(userId, PRIVATE_KEY_FILENAME) +
+                                                        Environment.NewLine);
+
+                        if (radioButtonUserIdsAndPasswords.Checked)
                         {
-                          textBoxRegistrations.AppendText("User Id: " + Encryption.DecryptMessage(line, PRIVATE_KEY_FILENAME) + Environment.NewLine);
-                          isUserId = false;
-                        } else
-                        {
-                          if (radioButtonUserIdsAndPasswords.Checked)
-                          {
-                            textBoxRegistrations.AppendText("Password: " + Encryption.DecryptMessage(line, PRIVATE_KEY_FILENAME) + Environment.NewLine);
-                          }
-                          isUserId = true;
+                            textBoxRegistrations.AppendText("Password: " +
+                                                            Encryption.DecryptMessage(password, PRIVATE_KEY_FILENAME) +
+                                                            Environment.NewLine);
                         }
-                      } else
-                      {
-                          textBoxRegistrations.AppendText(Environment.NewLine);
-                        
-                      }
+
+                        textBoxRegistrations.AppendText(emptyLine + Environment.NewLine);
 
                     }
                 }
@@ -68,8 +66,12 @@ namespace SMPServer
             catch (Exception ex)
             {
                 ExceptionLogger.LogExeption(ex);
-                MessageBox.Show("Error loading registrations: " + ex.Message, 
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Error loading registrations: " + ex.Message, ex.GetType().Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                buttonShowRegistrations.Text = "Show Registrations";
+                buttonShowRegistrations.Enabled = true;
             }
         }
 
