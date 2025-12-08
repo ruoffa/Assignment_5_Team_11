@@ -25,21 +25,24 @@ namespace SMPServer
             // 
             // textBoxRegistrations
             // 
-            this.textBoxRegistrations.Location = new System.Drawing.Point(20, 20);
+            this.textBoxRegistrations.Location = new System.Drawing.Point(13, 13);
+            this.textBoxRegistrations.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.textBoxRegistrations.Multiline = true;
             this.textBoxRegistrations.Name = "textBoxRegistrations";
             this.textBoxRegistrations.ReadOnly = true;
-            this.textBoxRegistrations.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBoxRegistrations.Size = new System.Drawing.Size(570, 520);
+            this.textBoxRegistrations.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.textBoxRegistrations.Size = new System.Drawing.Size(381, 339);
             this.textBoxRegistrations.TabIndex = 0;
+            this.textBoxRegistrations.WordWrap = false;
             // 
             // radioButtonUserIdsOnly
             // 
             this.radioButtonUserIdsOnly.AutoSize = true;
             this.radioButtonUserIdsOnly.Checked = true;
-            this.radioButtonUserIdsOnly.Location = new System.Drawing.Point(80, 560);
+            this.radioButtonUserIdsOnly.Location = new System.Drawing.Point(53, 364);
+            this.radioButtonUserIdsOnly.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.radioButtonUserIdsOnly.Name = "radioButtonUserIdsOnly";
-            this.radioButtonUserIdsOnly.Size = new System.Drawing.Size(93, 24);
+            this.radioButtonUserIdsOnly.Size = new System.Drawing.Size(66, 17);
             this.radioButtonUserIdsOnly.TabIndex = 1;
             this.radioButtonUserIdsOnly.TabStop = true;
             this.radioButtonUserIdsOnly.Text = "User IDs";
@@ -48,18 +51,20 @@ namespace SMPServer
             // radioButtonUserIdsAndPasswords
             // 
             this.radioButtonUserIdsAndPasswords.AutoSize = true;
-            this.radioButtonUserIdsAndPasswords.Location = new System.Drawing.Point(280, 560);
+            this.radioButtonUserIdsAndPasswords.Location = new System.Drawing.Point(187, 364);
+            this.radioButtonUserIdsAndPasswords.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.radioButtonUserIdsAndPasswords.Name = "radioButtonUserIdsAndPasswords";
-            this.radioButtonUserIdsAndPasswords.Size = new System.Drawing.Size(206, 24);
+            this.radioButtonUserIdsAndPasswords.Size = new System.Drawing.Size(141, 17);
             this.radioButtonUserIdsAndPasswords.TabIndex = 2;
             this.radioButtonUserIdsAndPasswords.Text = "User IDs and Passwords";
             this.radioButtonUserIdsAndPasswords.UseVisualStyleBackColor = true;
             // 
             // buttonShowRegistrations
             // 
-            this.buttonShowRegistrations.Location = new System.Drawing.Point(160, 600);
+            this.buttonShowRegistrations.Location = new System.Drawing.Point(107, 390);
+            this.buttonShowRegistrations.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.buttonShowRegistrations.Name = "buttonShowRegistrations";
-            this.buttonShowRegistrations.Size = new System.Drawing.Size(295, 35);
+            this.buttonShowRegistrations.Size = new System.Drawing.Size(197, 23);
             this.buttonShowRegistrations.TabIndex = 3;
             this.buttonShowRegistrations.Text = "Show Registrations";
             this.buttonShowRegistrations.UseVisualStyleBackColor = true;
@@ -67,14 +72,15 @@ namespace SMPServer
             // 
             // FormRegistrations
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(610, 650);
+            this.ClientSize = new System.Drawing.Size(407, 422);
             this.Controls.Add(this.buttonShowRegistrations);
             this.Controls.Add(this.radioButtonUserIdsAndPasswords);
             this.Controls.Add(this.radioButtonUserIdsOnly);
             this.Controls.Add(this.textBoxRegistrations);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "FormRegistrations";

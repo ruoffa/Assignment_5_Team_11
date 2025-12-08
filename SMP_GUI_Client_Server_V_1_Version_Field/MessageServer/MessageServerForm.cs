@@ -25,7 +25,7 @@ namespace SMPServer
                 IpAddress = textBoxServerIPAddress.Text;
                 Port = int.Parse(textBoxPortNumber.Text);
 
-                MessageServer.PacketRecieved += SMPServer_PacketRecieved;
+                MessageServer.PacketReceived += SmpServerPacketReceived;
 
                 ThreadPool.QueueUserWorkItem(MessageServer.Start, this);
 
@@ -118,7 +118,7 @@ namespace SMPServer
             }
         }
 
-        private void SMPServer_PacketRecieved(object sender, PacketEventArgs eventArgs)
+        private void SmpServerPacketReceived(object sender, PacketEventArgs eventArgs)
         {
             try
             {
@@ -132,20 +132,19 @@ namespace SMPServer
 
         private void SMPPacketReceived(object sender, PacketEventArgs eventArgs)
         {
+            if (eventArgs == null) return;
+            
             try
             {
-                if (eventArgs != null)
-                {
-                    string userId = eventArgs.SmpPacket.UserId;
-                    string password = eventArgs.SmpPacket.Password;
-                    string messageType = eventArgs.SmpPacket.MessageType;
-                    string messagePriority = eventArgs.SmpPacket.Priority;
+                string userId = eventArgs.SmpPacket.UserId;
+                string password = eventArgs.SmpPacket.Password;
+                string messageType = eventArgs.SmpPacket.MessageType;
+                string messagePriority = eventArgs.SmpPacket.Priority;
 
-                    textBoxUserId.Text = userId;
-                    textBoxPassword.Text = password;
-                    textBoxMessageType.Text = messageType;
-                    textBoxMessagePriority.Text = messagePriority;
-                }
+                textBoxUserId.Text = userId;
+                textBoxPassword.Text = password;
+                textBoxMessageType.Text = messageType;
+                textBoxMessagePriority.Text = messagePriority;
             }
             catch (Exception ex)
             {
@@ -157,10 +156,7 @@ namespace SMPServer
         {
             textBoxMessages.Clear();
 
-            if (!File.Exists("Messages.txt"))
-            {
-                return;
-            }
+            if (!File.Exists("Messages.txt")) return;
 
             StreamReader reader = new StreamReader("Messages.txt");
 

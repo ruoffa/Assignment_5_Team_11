@@ -9,7 +9,9 @@ namespace SMPServer
 {
     internal class MessageServer
     {
-        public static event EventHandler<PacketEventArgs> PacketRecieved;
+        private const string PrivateKeyFilename = "PrivateKey.xml";
+
+        public static event EventHandler<PacketEventArgs> PacketReceived;
 
         public static void Start(object o)
         {
@@ -36,56 +38,28 @@ namespace SMPServer
             using (StreamReader networkStreamReader = new StreamReader(networkStream))
             using (StreamWriter networkStreamWriter = new StreamWriter(networkStream))
             {
-                // Attempt to read a request from the network stream.
-                SmpPacket request;
-
+                string response;
                 try
                 {
-                    request = ReceiveSmpRequestPacket(networkStreamReader);
+                    // Attempt to read a request from the network stream.
+                    SmpPacket request = ReceiveSmpRequestPacket(networkStreamReader);
+
+                    // Update the UI.
+                    PacketReceived?.Invoke(null, new PacketEventArgs(request));
+
+                    // Process and get the response string based on the request message type.
+                    if (request.MessageType == Enumerations.SmpMessageType.PutMessage.ToString())
+                        response = ProcessSmpPutPacket(request);
+                    else if (request.MessageType == Enumerations.SmpMessageType.GetMessage.ToString())
+                        response = ProcessSmpGetPacket(request);
+                    else if (request.MessageType == Enumerations.SmpMessageType.Registration.ToString())
+                        response = ProcessSmpRegistrationPacket(request);
+                    else
+                        response = "Unsupported message type";
                 }
                 catch (Exception ex)
                 {
-                    SendSmpResponsePacket(ex.Message, networkStreamWriter);
-                    return;
-                }
-
-                // Update the UI.
-                PacketRecieved?.Invoke(null, new PacketEventArgs(request));
-
-                // Process and get the response string based on the request message type.
-                string response;
-
-                if (request.MessageType == Enumerations.SmpMessageType.PutMessage.ToString())
-                {
-                    // Check authentication before processing
-                    if (IsUserAuthenticated(request.UserId, request.Password))
-                    {
-                        response = ProcessSmpPutPacket(request);
-                    }
-                    else
-                    {
-                        response = "Authentication failed. Invalid user ID or password.";
-                    }
-                }
-                else if (request.MessageType == Enumerations.SmpMessageType.GetMessage.ToString())
-                {
-                    // Check authentication before processing
-                    if (IsUserAuthenticated(request.UserId, request.Password))
-                    {
-                        response = ProcessSmpGetPacket(request.UserId, request.Password, request.Priority);
-                    }
-                    else
-                    {
-                        response = "Authentication failed. Invalid user ID or password.";
-                    }
-                }
-                else if (request.MessageType == Enumerations.SmpMessageType.Registration.ToString())
-                {
-                    response = ProcessSmpRegistrationPacket(request);
-                }
-                else
-                {
-                    response = "Unsupported message type";
+                    response = ex.Message;
                 }
 
                 // Send the response string.
@@ -93,174 +67,84 @@ namespace SMPServer
             }
         }
 
-        private static bool IsUserAuthenticated(string encryptedUserId, string encryptedPassword)
+        private static string ProcessSmpPutPacket(SmpPacket request)
         {
-            const string REGISTRATIONS_FILE = "Registrations.txt";
-            const string PRIVATE_KEY_FILENAME = "PrivateKey.xml";
+            // Try to decrypt the credentials.
+            if (!DecryptCredentials(request, out string plainUserId, out string plainPassword))
+                return "Decryption error.";
 
-            if (!File.Exists(REGISTRATIONS_FILE))
+            // Check if user is registered and authenticated
+            if (!RegistrationsRecordManager.Contains(plainUserId, plainPassword))
+                return "Authentication failed. Invalid user ID or password.";
+
+            // Verify the priority is valid.
+            if (!(request.Priority == "0" || request.Priority == "1" || request.Priority == "2" || request.Priority == "3"))
+                return "Invalid priority";
+            
+            // Try to save the message.
+            if (!MessageRecordManager.Append(request))
+                return "An unexpected error occurred saving the message.";
+
+            // Success: Return a confirmation.
+            return "Received Message: " + DateTime.Now;
+        }
+
+        private static string ProcessSmpGetPacket(SmpPacket request)
+        {
+            // Try to decrypt the credentials.
+            if (!DecryptCredentials(request, out string plainUserId, out string plainPassword))
+                return "Decryption error.";
+
+            // Check if user is registered and authenticated.
+            if (!RegistrationsRecordManager.Contains(plainUserId, plainPassword))
+                return "Authentication failed. Invalid user ID or password.";
+
+            // Try to get a matching message.
+            SmpPacket removed = MessageRecordManager.Remove(plainUserId, plainPassword, request.Priority);
+            if (removed == null)
+                return "No messages found. Please check your credentials and try again.";
+
+            // Success: Return the message.
+            return "Message Information: " + "\n" + removed.DateTime + "\n" + removed.Message;
+        }
+
+        private static string ProcessSmpRegistrationPacket(SmpPacket request)
+        {
+            // Try to decrypt the credentials.
+            if (!DecryptCredentials(request, out string plainUserId, out string plainPassword))
+                return "Decryption error.";
+
+            // Verify the credentials are valid.
+            if (string.IsNullOrWhiteSpace(plainUserId) || string.IsNullOrWhiteSpace(plainPassword))
+                return "User ID and password must not be empty.";
+
+            // Try to register the credentials.
+            if (RegistrationsRecordManager.Contains(plainUserId, plainPassword))
+                return "User ID already registered.";
+
+            // Try to register the credentials.
+            if (!RegistrationsRecordManager.Append(request))
+                return "An unexpected error occurred registering user.";
+
+            // Success: Return a confirmation.
+            return "User registered.";
+        }
+
+        private static bool DecryptCredentials(SmpPacket packet, out string plainUserId, out string plainPassword)
+        {
+            try
             {
+                plainUserId = Encryption.DecryptMessage(packet.UserId, PrivateKeyFilename);
+                plainPassword = Encryption.DecryptMessage(packet.Password, PrivateKeyFilename);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.LogExeption(ex);
+                plainUserId = null;
+                plainPassword = null;
                 return false;
             }
-
-            if (!File.Exists(PRIVATE_KEY_FILENAME))
-            {
-                return false;
-            }
-
-            try
-            {
-                // Decrypt the incoming credentials
-                string plainUserId = Encryption.DecryptMessage(encryptedUserId, PRIVATE_KEY_FILENAME);
-                string plainPassword = Encryption.DecryptMessage(encryptedPassword, PRIVATE_KEY_FILENAME);
-
-                using (StreamReader reader = new StreamReader(REGISTRATIONS_FILE))
-                {
-                    bool isUserId = true;
-                    string currentUserId = "";
-                    string line;
-
-                    while ((line = reader.ReadLine()) != null)
-                    {
-                        if (!string.IsNullOrWhiteSpace(line))
-                        {
-                            if (isUserId)
-                            {
-                                // Decrypt stored userId
-                                currentUserId = Encryption.DecryptMessage(line, PRIVATE_KEY_FILENAME);
-                                isUserId = false;
-                            }
-                            else
-                            {
-                                // Decrypt stored password
-                                string storedPassword = Encryption.DecryptMessage(line, PRIVATE_KEY_FILENAME);
-                                
-                                // Compare decrypted values
-                                if (currentUserId == plainUserId && storedPassword == plainPassword)
-                                {
-                                    return true;
-                                }
-                                isUserId = true;
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                ExceptionLogger.LogExeption(ex);
-            }
-
-            return false;
-        }
-
-        private static string ProcessSmpPutPacket(SmpPacket smpPacket)
-        {
-            const string PRIVATE_KEY_FILENAME = "PrivateKey.xml";
-
-            try
-            {
-                string priority = smpPacket.Priority;
-                if (priority == "0" || priority == "1" || priority == "2" || priority == "3")
-                {
-                    // Decrypt userId and password before storing
-                    string decryptedUserId = Encryption.DecryptMessage(smpPacket.UserId, PRIVATE_KEY_FILENAME);
-                    string decryptedPassword = Encryption.DecryptMessage(smpPacket.Password, PRIVATE_KEY_FILENAME);
-
-                    // Create a new packet with decrypted credentials
-                    SmpPacket decryptedPacket = new SmpPacket(
-                        smpPacket.Version,
-                        decryptedUserId,
-                        decryptedPassword,
-                        smpPacket.MessageType,
-                        smpPacket.Priority,
-                        smpPacket.DateTime,
-                        smpPacket.Message);
-
-                    using (StreamWriter writer = new StreamWriter("Messages.txt", true))
-                    {
-                        decryptedPacket.Write(writer);
-                        writer.WriteLine();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                ExceptionLogger.LogExeption(ex);
-            }
-
-            return "Received Packet: " + DateTime.Now;
-        }
-
-        private static string ProcessSmpGetPacket(string requestedEncryptedUserId, string requestedEncryptedPassword, string requestedPriority)
-        {
-            const string PRIVATE_KEY_FILENAME = "PrivateKey.xml";
-            const int recordSize = 8;
-
-            SmpPacket smpPacket = null;
-
-            try
-            {
-                string requestedUserId = Encryption.DecryptMessage(requestedEncryptedUserId, PRIVATE_KEY_FILENAME);
-                string requestedPassword = Encryption.DecryptMessage(requestedEncryptedPassword, PRIVATE_KEY_FILENAME);
-
-                if (File.Exists("Messages.txt"))
-                {
-                    var lines = new List<string>(File.ReadAllLines("Messages.txt"));
-
-                    int i = 0;
-                    while (i <= lines.Count - recordSize)
-                    {
-                        string smpVersion = lines[i++];
-                        // Stop parsing if an incompatible record is found.
-                        if (smpVersion != Enumerations.SmpVersion.Version_3_0.ToString()) break;
-
-                        string userId = lines[i++];
-                        string password = lines[i++];
-                        string messageType = lines[i++];
-                        string priority = lines[i++];
-                        string dateTime = lines[i++];
-                        string message = lines[i++];
-                        string emptyLine = lines[i++];
-
-                        // Compare with decrypted credentials (Messages.txt now has plaintext)
-                        if (userId == requestedUserId && password == requestedPassword && priority == requestedPriority)
-                        {
-                            smpPacket = new SmpPacket(smpVersion, userId, password, messageType, priority, dateTime, message);
-                            lines.RemoveRange(i - recordSize, recordSize);
-                            break;
-                        }
-                    }
-
-                    // Update the messages file with the matching record removed.
-                    File.WriteAllLines("Messages.txt", lines);
-                }
-            }
-            catch (Exception ex)
-            {
-                ExceptionLogger.LogExeption(ex);
-            }
-
-            return smpPacket != null
-                ? "Message Information: " + "\n" + smpPacket.DateTime + "\n" + smpPacket.Message
-                : "No messages found. Please check your credentials and try again.";
-        }
-
-        private static string ProcessSmpRegistrationPacket(SmpPacket smpPacket)
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter("Registrations.txt", true))
-                {
-                    smpPacket.WriteCredentials(writer);
-                    writer.WriteLine();
-                }
-            }
-            catch (Exception ex)
-            {
-                ExceptionLogger.LogExeption(ex);
-            }
-            return "Received Packet: " + DateTime.Now;
         }
 
         private static SmpPacket ReceiveSmpRequestPacket(StreamReader reader)
@@ -271,6 +155,138 @@ namespace SMPServer
         private static void SendSmpResponsePacket(string responsePacket, StreamWriter writer)
         {
             writer.WriteLine(responsePacket);
+        }
+
+        private static class MessageRecordManager
+        {
+            private const string Filename = "Messages.txt";
+            private const int RecordSize = 8;
+
+            public static bool Append(SmpPacket record)
+            {
+                try
+                {
+                    using (StreamWriter writer = new StreamWriter(Filename, true))
+                    {
+                        record.Write(writer);
+                        writer.WriteLine();
+                    }
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    ExceptionLogger.LogExeption(ex);
+                }
+                return false;
+            }
+
+            public static SmpPacket Remove(string plainUserId, string plainPassword, string plainPriority)
+            {
+                if (!File.Exists(Filename)) return null;
+
+                try
+                {
+                    var lines = new List<string>(File.ReadAllLines(Filename));
+
+                    int i = 0;
+                    while (i <= lines.Count - RecordSize)
+                    {
+                        string smpVersion = lines[i++];
+                        // Stop parsing if an incompatible record is found.
+                        if (smpVersion != Enumerations.SmpVersion.Version_3_0.ToString())
+                            break;
+                        string userId = lines[i++];
+                        string password = lines[i++];
+                        string messageType = lines[i++];
+                        string priority = lines[i++];
+                        string dateTime = lines[i++];
+                        string message = lines[i++];
+                        string emptyLine = lines[i++];
+
+                        // Compare with query
+                        if (plainPriority == priority &&
+                            plainUserId == Encryption.DecryptMessage(userId, PrivateKeyFilename) &&
+                            plainPassword == Encryption.DecryptMessage(password, PrivateKeyFilename))
+                        {
+                            // Remove the record lines.
+                            lines.RemoveRange(i - RecordSize, RecordSize);
+
+                            // Update the messages file with the matching record removed.
+                            File.WriteAllLines("Messages.txt", lines);
+
+                            // Return the matched record.
+                            return new SmpPacket(smpVersion, userId, password, messageType, priority, dateTime, message);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ExceptionLogger.LogExeption(ex);
+                }
+
+                return null;
+            }
+        }
+
+        private static class RegistrationsRecordManager
+        {
+            private const string Filename = "Registrations.txt";
+            
+            public static bool Append(SmpPacket credentials)
+            {
+                try
+                {
+                    using (StreamWriter writer = new StreamWriter(Filename, true))
+                    {
+                        writer.WriteLine(credentials.UserId);
+                        writer.WriteLine(credentials.Password);
+                        writer.WriteLine();
+                    }
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    ExceptionLogger.LogExeption(ex);
+                }
+                return false;
+            }
+
+            public static bool Contains(string plainUserId = null, string plainPassword = null)
+            {
+                if (!File.Exists(Filename)) return false;
+
+                try
+                {
+                    using (StreamReader reader = new StreamReader(Filename))
+                    {
+                        while (!reader.EndOfStream)
+                        {
+                            string recordUserId = reader.ReadLine();
+                            string recordPassword = reader.ReadLine();
+                            string recordEmptyLine = reader.ReadLine();
+
+                            // Stop reading at end of stream.
+                            if (recordUserId == null || recordPassword == null || recordEmptyLine == null) break;
+
+                            // Jump to next record if user ID does not match.
+                            if (plainUserId != null && plainUserId != Encryption.DecryptMessage(recordUserId, PrivateKeyFilename)) continue;
+
+                            // Jump to next record if password does not match.
+                            if (plainPassword != null && plainPassword != Encryption.DecryptMessage(recordPassword, PrivateKeyFilename)) continue;
+
+                            // Record matches, return true.
+                            return true;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ExceptionLogger.LogExeption(ex);
+                }
+
+                // No records matched, return false.
+                return false;
+            }
         }
     }
 }

@@ -39,13 +39,6 @@ namespace SMP_Library
             writer.WriteLine(Message);
         }
 
-        // Write the packet's credentials, using the writer's native newline.
-        public void WriteCredentials(TextWriter writer)
-        {
-            writer.WriteLine(UserId);
-            writer.WriteLine(Password);
-        }
-
         /**
          * Read the packet from the reader as a string using the reader's native newline.
          * This will use Environment.NewLine for files and \n for networks.

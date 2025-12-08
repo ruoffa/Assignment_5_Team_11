@@ -74,6 +74,9 @@
     <Compile Include="RegistrationsForm.Designer.cs">
       <DependentUpon>RegistrationsForm.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="RegistrationsForm.resx">
+      <DependentUpon>RegistrationsForm.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

@@ -7,61 +7,24 @@ namespace SMPClientConsumer
 {
     public partial class MessageConsumerForm : Form
     {
-        private const string PRIVATE_KEY_FILENAME = "PrivateKey.xml";
+        private const string PrivateKeyFilename = "PrivateKey.xml";
 
         public MessageConsumerForm()
         {
             InitializeComponent();
 
-            MessageConsumer.SMPResponsePacketRecieved += SMPClientConsumer_SMPResponsePacketRecieved;
+            MessageConsumer.SMPResponsePacketRecieved += SMPClientConsumer_SMPResponsePacketReceived;
         }
 
         private void buttonGetMessage_Click(object sender, EventArgs e)
         {
-            textBoxServerIPAddress.Enabled = false;
-            textBoxApplicationPortNumber.Enabled = false;
-            buttonGetMessage.Enabled = false;
-
-            int priority;
-
-            //Get the message priority
-            if (radioButtonPriorityLow.Checked == true)
-            {
-                priority = 1;
-            }
-            else if (radioButtonPriorityMedium.Checked == true)
-            {
-                priority = 2;
-            }
-            else
-            {
-                priority = 3;
-            }
-
-            string userId = textBoxUserId.Text;
-            string password = textBoxPassword.Text;
-            string encryptedUserId = Encryption.EncryptMessage(userId, PRIVATE_KEY_FILENAME);
-            string encryptedPassword = Encryption.EncryptMessage(password, PRIVATE_KEY_FILENAME);
-
-            SmpPacket smpPacket = new SmpPacket(
-                Enumerations.SmpVersion.Version_3_0.ToString(),
-                encryptedUserId,
-                encryptedPassword,
-                Enumerations.SmpMessageType.GetMessage.ToString(),
-                priority.ToString(),
-                DateTime.Now.ToString(),
-                "");
-
             try
             {
-                //Send the packet
-                MessageConsumer.SendSmpPacket(textBoxServerIPAddress.Text,
-                    int.Parse(textBoxApplicationPortNumber.Text), smpPacket);
-            }
-            catch (Exception ex)
-            {
-                ExceptionLogger.LogExeption(ex);
-                MessageBox.Show(ex.Message, ex.GetType().Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                textBoxServerIPAddress.Enabled = false;
+                textBoxApplicationPortNumber.Enabled = false;
+                buttonGetMessage.Enabled = false;
+
+                ProcessSmpGetPacket();
             }
             finally
             {
@@ -71,18 +34,75 @@ namespace SMPClientConsumer
             }
         }
 
-        private void SMPClientConsumer_SMPResponsePacketRecieved(object sender, SMPResponsePacketEventArgs e)
+        private void ProcessSmpGetPacket()
+        {
+
+            // Get the packet fields.
+            int priority;
+            if (radioButtonPriorityLow.Checked) priority = 1;
+            else if (radioButtonPriorityMedium.Checked) priority = 2;
+            else if (radioButtonPriorityHigh.Checked) priority = 3;
+            else return;
+            string plainUserId = textBoxUserId.Text;
+            string plainPassword = textBoxPassword.Text;
+            string plainMessage = "";
+            string serverIpAddress = textBoxServerIPAddress.Text;
+            int serverPort = int.Parse(textBoxApplicationPortNumber.Text);
+
+            // Construct the packet.
+            SmpPacket smpPacket = new SmpPacket(
+                Enumerations.SmpVersion.Version_3_0.ToString(),
+                plainUserId,
+                plainPassword,
+                Enumerations.SmpMessageType.GetMessage.ToString(),
+                priority.ToString(),
+                DateTime.Now.ToString(),
+                plainMessage);
+
+            // Encrypt the packet.
+            try
+            {
+                if (!File.Exists(PrivateKeyFilename))
+                {
+                    throw new FileNotFoundException(
+                        PrivateKeyFilename + " not found!\nPlease start the SMP Server first to generate encryption keys.",
+                        PrivateKeyFilename);
+                }
+                smpPacket.UserId = Encryption.EncryptMessage(smpPacket.UserId, PrivateKeyFilename);
+                smpPacket.Password = Encryption.EncryptMessage(smpPacket.Password, PrivateKeyFilename);
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.LogExeption(ex);
+                MessageBox.Show("Message encryption failed: " + ex.Message, "Encryption Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // Send the packet.
+            try
+            {
+                MessageConsumer.SendSmpPacket(serverIpAddress, serverPort, smpPacket);
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.LogExeption(ex);
+                MessageBox.Show(ex.Message, ex.GetType().Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void SMPClientConsumer_SMPResponsePacketReceived(object sender, SMPResponsePacketEventArgs e)
         {
             try
             {
-                Invoke(new EventHandler<SMPResponsePacketEventArgs>(SMPResponsePacketRecieved), sender, e);
+                Invoke(new EventHandler<SMPResponsePacketEventArgs>(SMPResponsePacketReceived), sender, e);
             }
             catch (Exception ex)
             {
                 ExceptionLogger.LogExeption(ex);
             }
         }
-        private void SMPResponsePacketRecieved(object sender, SMPResponsePacketEventArgs eventArgs)
+
+        private void SMPResponsePacketReceived(object sender, SMPResponsePacketEventArgs eventArgs)
         {
             try
             {
@@ -100,10 +120,10 @@ namespace SMPClientConsumer
                     // Response contains at least 3 entries (title, date and a message record).
                     try
                     {
-                        if (!File.Exists(PRIVATE_KEY_FILENAME))
+                        if (!File.Exists(PrivateKeyFilename))
                         {
                             MessageBox.Show("PrivateKey.xml not found!\n\n" +
-                                          "Please start the SMP Server first to generate encryption keys.", 
+                                          "Please start the SMP Server first to generate encryption keys.",
                                 "Missing Private Key", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             textBoxMessageContent.Text = "Error: Private key file not found.";
                             return;
@@ -113,7 +133,7 @@ namespace SMPClientConsumer
                         string dateTime = entries[1];
                         string encryptedMessage = entries[2];
 
-                        string decryptedMessage = Encryption.DecryptMessage(encryptedMessage, PRIVATE_KEY_FILENAME);
+                        string decryptedMessage = Encryption.DecryptMessage(encryptedMessage, PrivateKeyFilename);
 
                         string displayText = title + Environment.NewLine;
                         displayText += dateTime + Environment.NewLine;
