@@ -119,7 +119,7 @@ namespace SMPServer
                 return "User ID and password must not be empty.";
 
             // Try to register the credentials.
-            if (RegistrationsRecordManager.Contains(plainUserId, plainPassword))
+            if (RegistrationsRecordManager.Contains(plainUserId))
                 return "User ID already registered.";
 
             // Try to register the credentials.
