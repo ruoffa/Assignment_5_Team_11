@@ -73,7 +73,7 @@ namespace SMPServer
             if (!DecryptCredentials(request, out string plainUserId, out string plainPassword))
                 return "Decryption error.";
 
-            // Check if user is registered and authenticated
+            // Check if user is registered and authenticated.
             if (!RegistrationsRecordManager.Contains(plainUserId, plainPassword))
                 return "Authentication failed. Invalid user ID or password.";
 

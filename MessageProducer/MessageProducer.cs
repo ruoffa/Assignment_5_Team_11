@@ -1,14 +1,14 @@
 using System;
 using System.IO;
 using System.Net.Sockets;
-using System.Windows.Forms;
 using SMP_Library;
 
-namespace SMPClientRegistration
+namespace SMPClientProducer
 {
-    internal class MessageRegistration
+    internal class MessageProducer
     {
         public static event EventHandler<SMPResponsePacketEventArgs> SMPResponsePacketReceived;
+
         public static void SendSmpPacket(string serverIpAddress, int port, SmpPacket smpPacket)
         {
             using (TcpClient client = new TcpClient(serverIpAddress, port))

@@ -1,12 +1,11 @@
 using System;
 using System.IO;
 using System.Net.Sockets;
-using System.Windows.Forms;
 using SMP_Library;
 
-namespace SMPClientProducer
+namespace SMPClientRegistration
 {
-    internal class MessageProducer
+    internal class MessageRegistration
     {
         public static event EventHandler<SMPResponsePacketEventArgs> SMPResponsePacketReceived;
 
