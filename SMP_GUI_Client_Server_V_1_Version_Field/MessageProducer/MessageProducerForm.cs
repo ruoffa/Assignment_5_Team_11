@@ -14,7 +14,7 @@ namespace SMPClientProducer
         {
             InitializeComponent();
 
-            MessageProducer.SMPResponsePacketRecieved += SMPClientProducer_SMPResponsePacketReceived;
+            MessageProducer.SMPResponsePacketReceived += SMPClientProducer_SMPResponsePacketReceived;
         }
 
         private void buttonSendMessage_Click(object sender, EventArgs e)
@@ -96,14 +96,14 @@ namespace SMPClientProducer
         {
             try
             {
-                Invoke(new EventHandler<SMPResponsePacketEventArgs>(SMPResponsePacketRecieved), sender, e);
+                Invoke(new EventHandler<SMPResponsePacketEventArgs>(SMPResponsePacketReceived), sender, e);
             }
             catch (Exception ex)
             {
                 ExceptionLogger.LogExeption(ex);
             }
         }
-        private void SMPResponsePacketRecieved(object sender, SMPResponsePacketEventArgs eventArgs)
+        private void SMPResponsePacketReceived(object sender, SMPResponsePacketEventArgs eventArgs)
         {
             try
             {

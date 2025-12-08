@@ -7,12 +7,16 @@ namespace SMPClientRegistration
 {
     public partial class MessageRegistrationForm : Form
     {
+        private const string PublicKeyFilename = "PublicKey.xml";
+
         public MessageRegistrationForm()
         {
             InitializeComponent();
+
+            MessageRegistration.SMPResponsePacketReceived += SMPClientRegistration_SMPResponsePacketReceived;
         }
 
-        private void registrationButtonClick(object sender, EventArgs e)
+        private void registrationButton_Click(object sender, EventArgs e)
         {
             try
             {
@@ -22,61 +26,7 @@ namespace SMPClientRegistration
                 textBoxPassword.Enabled = false;
                 buttonRegister.Enabled = false;
 
-                string userId = textBoxUserId.Text;
-                string password = textBoxPassword.Text;
-
-                if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(password))
-                {
-                    MessageBox.Show("Please enter both User ID and Password.", "Validation Error", 
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                const string PUBLIC_KEY_FILENAME = "PublicKey.xml";
-                if (!File.Exists(PUBLIC_KEY_FILENAME))
-                {
-                    MessageBox.Show("PublicKey.xml not found!\n\n" +
-                                  "Please start the SMP Server first to generate encryption keys.", 
-                        "Missing Public Key", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                string encryptedUserId = Encryption.EncryptMessage(userId, PUBLIC_KEY_FILENAME);
-                string encryptedPassword = Encryption.EncryptMessage(password, PUBLIC_KEY_FILENAME);
-
-                // Create SMP packet for registration
-                SmpPacket smpPacket = new SmpPacket(
-                    Enumerations.SmpVersion.Version_3_0.ToString(),
-                    encryptedUserId,
-                    encryptedPassword,
-                    Enumerations.SmpMessageType.Registration.ToString(),
-                    "",
-                    DateTime.Now.ToString(),
-                    ""); 
-
-                using (System.Net.Sockets.TcpClient client = new System.Net.Sockets.TcpClient(
-                    textBoxServerIPAddress.Text, 
-                    int.Parse(textBoxApplicationPortNumber.Text)))
-                {
-                    using (System.Net.Sockets.NetworkStream networkStream = client.GetStream())
-                    using (StreamWriter writer = new StreamWriter(networkStream))
-                    using (StreamReader reader = new StreamReader(networkStream))
-                    {
-                        smpPacket.Write(writer);
-                        writer.Flush();
-
-                        string responsePacket = reader.ReadToEnd();
-
-                        MessageBox.Show("Server Response: " + responsePacket.Trim(), 
-                            "Registration Response", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                ExceptionLogger.LogExeption(ex);
-                MessageBox.Show($"Error: {ex.Message}", ex.GetType().Name, 
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ProcessSmpRegisterPacket();
             }
             finally
             {
@@ -85,6 +35,87 @@ namespace SMPClientRegistration
                 textBoxUserId.Enabled = true;
                 textBoxPassword.Enabled = true;
                 buttonRegister.Enabled = true;
+            }
+        }
+
+        private void ProcessSmpRegisterPacket()
+        {
+            // Get the packet fields.
+            string plainUserId = textBoxUserId.Text;
+            string plainPassword = textBoxPassword.Text;
+            string priority = "";
+            string message = "";
+            string serverIpAddress = textBoxServerIPAddress.Text;
+            int serverPort = int.Parse(textBoxApplicationPortNumber.Text);
+
+            // Verify form is filled.
+            if (string.IsNullOrWhiteSpace(plainUserId) || string.IsNullOrWhiteSpace(plainPassword))
+            {
+                MessageBox.Show("Please enter both User ID and Password.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Construct the packet.
+            SmpPacket smpPacket = new SmpPacket(
+                Enumerations.SmpVersion.Version_3_0.ToString(),
+                plainUserId,
+                plainPassword,
+                Enumerations.SmpMessageType.Registration.ToString(),
+                priority,
+                DateTime.Now.ToString(),
+                message);
+
+            // Encrypt the packet.
+            try
+            {
+                if (!File.Exists(PublicKeyFilename))
+                {
+                    throw new FileNotFoundException(
+                        PublicKeyFilename + " not found!\nPlease start the SMP Server first to generate encryption keys.",
+                        PublicKeyFilename);
+                }
+                smpPacket.UserId = Encryption.EncryptMessage(smpPacket.UserId, PublicKeyFilename);
+                smpPacket.Password = Encryption.EncryptMessage(smpPacket.Password, PublicKeyFilename);
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.LogExeption(ex);
+                MessageBox.Show("Message encryption failed: " + ex.Message, "Encryption Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // Send the packet.
+            try
+            {
+                MessageRegistration.SendSmpPacket(serverIpAddress, serverPort, smpPacket);
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.LogExeption(ex);
+                MessageBox.Show(ex.Message, ex.GetType().Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void SMPClientRegistration_SMPResponsePacketReceived(object sender, SMPResponsePacketEventArgs e)
+        {
+            try
+            {
+                Invoke(new EventHandler<SMPResponsePacketEventArgs>(SMPResponsePacketReceived), sender, e);
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.LogExeption(ex);
+            }
+        }
+        private void SMPResponsePacketReceived(object sender, SMPResponsePacketEventArgs eventArgs)
+        {
+            try
+            {
+                MessageBox.Show("Server Response: " + eventArgs.ResponseMessage.Trim(), "Registration Response", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.LogExeption(ex);
             }
         }
     }

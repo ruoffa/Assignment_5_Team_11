@@ -8,7 +8,7 @@ namespace SMPClientProducer
 {
     internal class MessageProducer
     {
-        public static event EventHandler<SMPResponsePacketEventArgs> SMPResponsePacketRecieved;
+        public static event EventHandler<SMPResponsePacketEventArgs> SMPResponsePacketReceived;
 
         public static void SendSmpPacket(string serverIpAddress, int port, SmpPacket smpPacket)
         {
@@ -34,7 +34,7 @@ namespace SMPClientProducer
         {
             SMPResponsePacketEventArgs eventArgs = new SMPResponsePacketEventArgs(responsePacket);
 
-            SMPResponsePacketRecieved?.Invoke(null, eventArgs);
+            SMPResponsePacketReceived?.Invoke(null, eventArgs);
         }
     }
 }
